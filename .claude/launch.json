@@ -1,0 +1,18 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "infinity",
+      "runtimeExecutable": "python",
+      "runtimeArgs": ["run.py"],
+      "port": 8100,
+      "autoPort": true
+    },
+    {
+      "name": "dry-run",
+      "runtimeExecutable": "python",
+      "runtimeArgs": ["tools/dry_run.py", "--port", "8130"],
+      "port": 8130
+    }
+  ]
+}

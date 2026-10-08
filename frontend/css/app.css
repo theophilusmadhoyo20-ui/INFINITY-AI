@@ -1,0 +1,799 @@
+/* ═══════════════════════════════════════════════════════════════════════════
+   INFINITY.100 AI — glass over the robot hero
+   Palette: near-white #f4f5f7 · charcoal #16181d · red #e8362a · green #28c76f
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+:root{
+  /* Three ink tiers, all measured against the panel interior (a 63-grey at the
+     brightest point of the stage gradient): 9.6:1 / 6.8:1 / 5.2:1. The old
+     scale ran .62/.38, and rgba(244,245,247,.38) cannot reach 4.5:1 over ANY
+     background — its ceiling is 3.36:1 — so the whole scale moved up a notch.
+     The hierarchy below --ink-dim is carried by size, weight and tracking
+     (9px uppercase .22em labels vs 13.5px mono values), not by alpha alone. */
+  --ink:#f4f5f7;
+  --ink-dim:rgba(244,245,247,.82);
+  --ink-faint:rgba(244,245,247,.66);
+  --char:#16181d;
+  --red:#e8362a;
+  /* --red as *text* measures 2.76:1 on glass. Use --red-ink wherever red is a
+     glyph or a focus ring (5.8:1); keep --red for fills, bars and glows. */
+  --red-ink:#ff9d94;
+  --green:#28c76f;
+  --amber:#f6c945;
+
+  /* Glass is DARK-tinted, not white-tinted. The stage gradient runs from
+     #f4f5f7 at the top to #16181d at the bottom, so a translucent white panel
+     made contrast a function of scroll position — near-white text over a
+     near-white backdrop measured 1.0:1. A dark tint dense enough to hold AA
+     over the brightest part of the backdrop makes it deterministic, and 14%
+     transmission still lets the hero read through (63-grey interior at the
+     bright end, 25-grey at the dark end — a visible 38-level spread). */
+  --glass:rgba(14,16,21,.86);
+  --glass-2:rgba(20,23,29,.84);
+  --edge:rgba(255,255,255,.16);
+  --edge-soft:rgba(255,255,255,.09);
+  --spec:rgba(255,255,255,.55);
+
+  --blur:blur(20px) saturate(160%);
+  --r:18px;
+  --r-sm:12px;
+  --shadow:0 1px 0 var(--edge-soft) inset, 0 18px 40px -18px rgba(0,0,0,.75),
+           0 2px 10px rgba(0,0,0,.35);
+
+  --bar-h:60px;
+  --dock-w:372px;
+  --gap:16px;
+  --f:"Segoe UI Variable Display","Segoe UI",Inter,system-ui,-apple-system,sans-serif;
+  --mono:"Cascadia Mono",ui-monospace,SFMono-Regular,Consolas,monospace;
+}
+
+*{box-sizing:border-box}
+html,body{height:100%}
+body{
+  margin:0;
+  font:15px/1.45 var(--f);
+  color:var(--ink);
+  background:#0b0d11;
+  overflow-x:hidden;
+  -webkit-font-smoothing:antialiased;
+  text-rendering:optimizeLegibility;
+}
+h1,h2,h3,p,dl,dd,dt,ul{margin:0;padding:0}
+ul{list-style:none}
+button{font:inherit;color:inherit}
+.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;
+  clip:rect(0 0 0 0);white-space:nowrap;border:0}
+
+:focus-visible{outline:2px solid var(--red-ink);outline-offset:3px;border-radius:6px}
+
+/* ── the glass primitive ────────────────────────────────────────────────── */
+.glass{
+  position:relative;
+  /* isolate so the sheen below can sit at z-index:-1 — above this background,
+     underneath the text. A full-surface ::after paints OVER in-flow content,
+     which washed every glyph in the top 42% of every panel. */
+  isolation:isolate;
+  background:var(--glass);
+  -webkit-backdrop-filter:var(--blur);
+  backdrop-filter:var(--blur);
+  border:1px solid var(--edge);
+  border-radius:var(--r);
+  box-shadow:var(--shadow);
+}
+/* specular top edge */
+.glass::before{
+  content:"";position:absolute;inset:0 0 auto 0;height:1px;border-radius:var(--r) var(--r) 0 0;
+  background:linear-gradient(90deg,transparent,var(--spec) 18%,var(--spec) 82%,transparent);
+  opacity:.5;pointer-events:none;
+}
+/* inner sheen — under the content, see isolation above */
+.glass::after{
+  content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none;z-index:-1;
+  background:linear-gradient(160deg,rgba(255,255,255,.08),rgba(255,255,255,0) 42%);
+}
+
+/* Fallback: no backdrop-filter -> opaque charcoal so text stays readable */
+@supports not ((backdrop-filter:blur(1px)) or (-webkit-backdrop-filter:blur(1px))){
+  :root{--glass:rgba(22,24,29,.90);--glass-2:rgba(30,33,40,.94);--edge:rgba(255,255,255,.14)}
+  .glass{background:var(--glass)}
+  .stage__figure{opacity:.55}
+}
+
+/* ── stage / backdrop ───────────────────────────────────────────────────── */
+.stage{position:fixed;inset:0;z-index:0;overflow:hidden}
+.stage__gradient{
+  position:absolute;inset:0;
+  background:
+    radial-gradient(120% 90% at 50% 6%, #f4f5f7 0%, #dfe2e8 26%, #9ba3b0 52%, #3c4149 78%, #16181d 100%),
+    linear-gradient(180deg,#20242b,#0b0d11);
+}
+.stage__photo{position:absolute;inset:0;background:no-repeat center bottom/cover;opacity:0;
+  transition:opacity .6s ease}
+.stage__figure{
+  position:absolute;left:50%;bottom:0;transform:translateX(-50%);
+  width:min(52vw,700px);height:min(94vh,900px);
+  display:flex;align-items:flex-end;justify-content:center;
+}
+.hero{width:100%;height:100%;filter:drop-shadow(0 40px 70px rgba(0,0,0,.6))}
+.hero__eye{animation:pulse 3.6s ease-in-out infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.58}}
+.stage__vignette{
+  position:absolute;inset:0;pointer-events:none;
+  background:
+    radial-gradient(80% 60% at 50% 40%, transparent 40%, rgba(11,13,17,.55) 100%),
+    linear-gradient(180deg,rgba(11,13,17,.55),transparent 22%,transparent 62%,rgba(11,13,17,.86));
+}
+/* hero.png present -> show the photo, retire the SVG */
+html[data-hero="photo"] .stage__figure{display:none}
+html[data-hero="photo"] .stage__photo{opacity:1}
+html[data-hero="photo"] .stage__gradient{filter:saturate(.9)}
+
+/* ── top bar ────────────────────────────────────────────────────────────── */
+.bar{
+  position:fixed;top:10px;left:10px;right:10px;height:var(--bar-h);z-index:30;
+  display:flex;align-items:center;justify-content:space-between;gap:12px;padding:0 14px;
+}
+.bar__left,.bar__right{display:flex;align-items:center;gap:10px;min-width:0}
+.mark{display:flex;align-items:center;gap:9px}
+.mark__eyes{display:flex;gap:5px}
+.mark__eyes i{
+  width:11px;height:11px;border-radius:50%;border:2.4px solid var(--red);
+  box-shadow:0 0 10px rgba(232,54,42,.75);animation:pulse 3.6s ease-in-out infinite;
+}
+.mark__text{font-weight:700;letter-spacing:.1em;font-size:15px;white-space:nowrap}
+.mark__text b{color:var(--red-ink);font-weight:800}
+.bar__tag{
+  font-size:10px;letter-spacing:.24em;color:var(--ink-faint);white-space:nowrap;
+  padding-left:12px;border-left:1px solid var(--edge-soft);
+}
+
+.pill{
+  display:inline-flex;align-items:center;gap:8px;height:36px;padding:0 13px;
+  border-radius:999px;background:var(--glass-2);border:1px solid var(--edge);
+  -webkit-backdrop-filter:blur(12px) saturate(150%);backdrop-filter:blur(12px) saturate(150%);
+  font-size:13px;white-space:nowrap;
+}
+.pill--link{cursor:pointer;transition:border-color .18s,transform .18s}
+.pill--link:hover{border-color:rgba(255,255,255,.34);transform:translateY(-1px)}
+.pill--equity .pill__value{font:600 15px/1 var(--mono);letter-spacing:-.02em}
+.pill__coin{width:18px;height:18px;flex:none}
+.pill__delta{font:600 11px/1 var(--mono);color:var(--ink-faint)}
+.pill__delta.up{color:var(--green)}
+.pill__delta.down{color:var(--red-ink)}
+.pill--mode{font:600 11px/1 var(--f);letter-spacing:.14em;color:var(--ink-dim)}
+.pill--mode.real{color:#fff;background:rgba(232,54,42,.30);border-color:rgba(232,54,42,.6)}
+
+.wifi{width:22px;height:19px;flex:none;fill:none;stroke:currentColor;stroke-width:2.1;
+  stroke-linecap:round;color:var(--ink-faint)}
+.wifi .wifi__dot{fill:currentColor;stroke:none}
+.wifi path,.wifi circle{opacity:.22;transition:opacity .3s,stroke .3s}
+#connBtn.is-live .wifi{color:var(--green)}
+#connBtn.is-live .wifi path,#connBtn.is-live .wifi circle{opacity:1}
+#connBtn.is-live .pill__value{color:var(--green)}
+#connBtn.is-off .wifi{color:var(--red-ink)}
+#connBtn.is-off .wifi .wifi__dot{opacity:1}
+#connBtn.is-off .pill__value{color:var(--red-ink)}
+#connBtn.is-busy .wifi{color:var(--amber);animation:blink 1s steps(2) infinite}
+#connBtn.is-busy .wifi path,#connBtn.is-busy .wifi circle{opacity:.85}
+@keyframes blink{50%{opacity:.35}}
+
+/* The LINK BROKER pill. Two states and they are deliberately unequal: with no
+   link it is the loudest thing in the bar, because nothing else in the app can
+   work until it is dealt with; once linked it goes quiet and becomes an ordinary
+   way back in to change accounts. Never `hidden` in either state — this button
+   existing only while broken is what made it impossible to find. */
+.plug{width:17px;height:17px;flex:none;fill:none;stroke:currentColor;stroke-width:2;
+  stroke-linecap:round;stroke-linejoin:round}
+.pill--broker{font:700 11px/1 var(--f);letter-spacing:.13em;gap:7px;padding:0 14px}
+.pill--broker .pill__value{font:inherit;letter-spacing:inherit}
+.pill--broker.needs-link{
+  color:#fff;background:rgba(232,54,42,.30);border-color:rgba(232,54,42,.66);
+  box-shadow:0 0 0 1px rgba(232,54,42,.20),0 6px 18px rgba(232,54,42,.28);
+  animation:linkcall 2.6s ease-in-out infinite;
+}
+.pill--broker.needs-link:hover{background:rgba(232,54,42,.40);border-color:rgba(232,54,42,.9)}
+.pill--broker.is-linked{color:var(--ink-dim)}
+.pill--broker.is-linked .plug{color:var(--green)}
+@keyframes linkcall{
+  0%,100%{box-shadow:0 0 0 1px rgba(232,54,42,.20),0 6px 18px rgba(232,54,42,.26)}
+  50%    {box-shadow:0 0 0 1px rgba(232,54,42,.40),0 6px 26px rgba(232,54,42,.52)}
+}
+
+/* ── layout ─────────────────────────────────────────────────────────────── */
+.shell{
+  position:relative;z-index:10;
+  min-height:100vh;
+  padding:calc(var(--bar-h) + 22px) calc(var(--dock-w) + 26px) 76px 10px;
+  display:grid;grid-template-columns:288px minmax(0,1fr) 300px;gap:var(--gap);
+  align-items:start;
+}
+.col{min-width:0}
+.col--centre{
+  display:flex;flex-direction:column;min-height:calc(100vh - var(--bar-h) - 110px);
+}
+
+/* ── panels ─────────────────────────────────────────────────────────────── */
+.panel{padding:16px}
+.panel--tight{padding:13px 14px;margin-bottom:var(--gap)}
+.col--right{display:flex;flex-direction:column}
+.col--right .panel:last-child{margin-bottom:0}
+.panel__head{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;
+  margin-bottom:14px}
+.panel__head--sm{margin-bottom:10px;align-items:center}
+.panel__title{font-size:19px;font-weight:650;letter-spacing:-.01em}
+.panel__title--sm{font-size:12px;letter-spacing:.16em;text-transform:uppercase;
+  color:var(--ink-dim);font-weight:600}
+.panel__sub{font-size:10px;letter-spacing:.2em;color:var(--ink-faint);margin-top:4px}
+.panel__sub b{color:var(--ink-dim)}
+
+.chip{
+  display:inline-flex;align-items:center;height:22px;padding:0 9px;border-radius:999px;
+  background:rgba(255,255,255,.08);border:1px solid var(--edge-soft);
+  font:600 10.5px/1 var(--mono);letter-spacing:.04em;color:var(--ink-dim);white-space:nowrap;
+}
+.chip--count{background:rgba(232,54,42,.20);border-color:rgba(232,54,42,.42);color:#ffb3ac}
+.chip--level{letter-spacing:.14em}
+
+/* ── roster ─────────────────────────────────────────────────────────────── */
+.roster{display:flex;flex-direction:column;gap:8px;max-height:min(48vh,430px);
+  overflow-y:auto;padding-right:2px;scrollbar-width:thin}
+.roster::-webkit-scrollbar{width:6px}
+.roster::-webkit-scrollbar-thumb{background:rgba(255,255,255,.18);border-radius:3px}
+
+.rbtn{
+  width:100%;display:grid;grid-template-columns:38px minmax(0,1fr) auto;gap:10px;
+  align-items:center;padding:9px 10px;text-align:left;cursor:pointer;
+  background:rgba(255,255,255,.05);border:1px solid var(--edge-soft);border-radius:var(--r-sm);
+  transition:background .18s,border-color .18s,transform .18s;
+}
+/* Hover previews the selection colour instead of adding white. A white lift
+   pushed the panel interior to an 84-grey, which dropped .rbtn__tag to 4.1:1. */
+.rbtn:hover{background:rgba(232,54,42,.14);transform:translateX(2px)}
+.rbtn[aria-current="true"]{
+  background:linear-gradient(90deg,rgba(232,54,42,.24),rgba(255,255,255,.06));
+  border-color:rgba(232,54,42,.55);
+}
+.rbtn__k{
+  width:38px;height:38px;border-radius:10px;display:grid;place-items:center;flex:none;
+  font:800 15px/1 var(--f);background:rgba(255,255,255,.12);border:1px solid var(--edge);
+}
+.rbtn__k[data-k="S"]{background:rgba(232,54,42,.34);border-color:rgba(232,54,42,.62);color:#fff}
+.rbtn__body{min-width:0}
+.rbtn__name{display:block;font-weight:650;font-size:13px;letter-spacing:.02em;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rbtn__tag{display:block;font:11px/1.3 var(--mono);color:var(--ink-faint);
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:2px}
+.rbtn__lv{font:700 11px/1 var(--mono);color:var(--ink-dim);text-align:right;flex:none}
+.rbtn__lv small{display:block;font:9px/1.4 var(--f);letter-spacing:.14em;color:var(--ink-faint)}
+.rbtn__live{
+  display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--green);
+  box-shadow:0 0 8px var(--green);margin-left:6px;vertical-align:middle;
+}
+
+.add{
+  width:100%;margin-top:12px;height:40px;border-radius:var(--r-sm);cursor:pointer;
+  background:rgba(255,255,255,.05);border:1px dashed rgba(255,255,255,.26);
+  font:600 11px/1 var(--f);letter-spacing:.2em;color:var(--ink-dim);
+  display:flex;align-items:center;justify-content:center;gap:8px;transition:.18s;
+}
+.add:hover{background:rgba(255,255,255,.11);color:var(--ink);border-color:rgba(255,255,255,.42)}
+.add__icon{font:400 17px/1 var(--f);color:var(--red-ink)}
+.add__note{margin-top:8px;font-size:11.5px;line-height:1.5;color:var(--ink-faint)}
+.add__note code{font:11px var(--mono);color:#ffb3ac}
+
+/* ── centre column ──────────────────────────────────────────────────────── */
+/*
+  The centre column has no panel — its text floats directly on the stage, which
+  is the point of the design. But the stage under this column is a 159-to-227
+  grey all the way down to about half the viewport height (the radial "spotlight"
+  behind the hero), and near-white text on a 227 grey measures 1.12:1. The two
+  text-shadows below were the original mitigation; a soft black halo does very
+  little for a white glyph's interior, and WCAG does not credit it at all.
+
+  So the light region gets a scrim that carries the contrast the way .glass does
+  for the panels: dense where the glyphs are, fading outward so it reads as part
+  of the stage lighting rather than as a box. Measured need at the worst point is
+  alpha .62 for --ink-dim at 4.5:1; the core sits at .82/.78 for margin.
+*/
+.centre__hero{position:relative;isolation:isolate}
+.centre__hero::before{
+  content:"";position:absolute;z-index:-1;pointer-events:none;
+  /* bleed past the text so the fade happens outside the glyphs, not across them */
+  left:-24px;right:-40px;top:-18px;bottom:-22px;
+  background:radial-gradient(135% 150% at 14% 34%,
+    rgba(9,10,13,.82) 0%, rgba(9,10,13,.78) 52%, rgba(9,10,13,.50) 80%, rgba(9,10,13,0) 100%);
+}
+.centre__top{display:flex;align-items:center;gap:14px}
+.klass{
+  width:56px;height:56px;border-radius:16px;display:grid;place-items:center;flex:none;
+  font:800 25px/1 var(--f);
+}
+/* the red goes on background-IMAGE so it layers over .glass instead of replacing
+   it — as a plain `background` this won the cascade and the badge became a 28%
+   red wash of the stage, which put the class letter at 1.48:1. See .notice. */
+.klass[data-k="S"]{
+  background:var(--glass);
+  background-image:linear-gradient(rgba(232,54,42,.28),rgba(232,54,42,.28));
+  border-color:rgba(232,54,42,.6);
+}
+.centre__id{min-width:0;flex:1}
+/* the shadows stay — they soften the glyph edge against the scrim — but it is
+   .centre__hero::before that carries the contrast now, not these. */
+.centre__name{font-size:clamp(22px,2.5vw,34px);font-weight:750;letter-spacing:-.015em;
+  line-height:1.06;text-shadow:0 2px 20px rgba(0,0,0,.6)}
+.centre__meta{font:11.5px/1.4 var(--mono);color:var(--ink-dim);margin-top:5px}
+.level{padding:8px 14px;border-radius:14px;text-align:center;flex:none}
+.level__num{display:block;font:800 21px/1 var(--mono)}
+.level__word{display:block;font:9px/1 var(--f);letter-spacing:.24em;color:var(--ink-faint);
+  margin-top:4px}
+.centre__blurb{
+  max-width:44ch;margin-top:12px;font-size:13px;line-height:1.6;color:var(--ink-dim);
+  text-shadow:0 1px 10px rgba(0,0,0,.7);
+}
+.centre__spacer{flex:1;min-height:18px}
+
+/* ── expectancy: what the bracket needs versus what it gets ───────────────── */
+.expc{margin-top:14px;max-width:430px;padding:12px 14px;display:grid;gap:9px}
+.expc[hidden]{display:none}          /* [hidden] loses to display:grid otherwise */
+.expc__head{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.expc__dot{width:8px;height:8px;border-radius:50%;flex:none;
+  background:var(--tone,var(--ink-faint));box-shadow:0 0 9px var(--tone,transparent)}
+.expc__verdict{font:700 12px/1 var(--f);letter-spacing:.06em;text-transform:uppercase;
+  color:var(--tone,var(--ink))}
+.expc__from{font:11px/1 var(--f);color:var(--ink-faint)}
+.expc__nums{display:flex;gap:20px;flex-wrap:wrap}
+.expc__num{display:flex;flex-direction:column;gap:2px}
+.expc__num b{font:600 17px/1 var(--f);font-variant-numeric:tabular-nums;color:var(--ink)}
+.expc__num small{font:10px/1 var(--f);letter-spacing:.1em;text-transform:uppercase;
+  color:var(--ink-faint)}
+.expc__note{margin:0;font:12px/1.5 var(--f);color:var(--ink-dim)}
+.expc[data-tone="ok"]{--tone:var(--green)}
+.expc[data-tone="bad"]{--tone:var(--red-ink)}
+.expc[data-tone="warn"]{--tone:var(--amber)}
+.expc[data-tone="idle"]{--tone:rgba(244,245,247,.66)}
+
+.rbtn__warn{
+  display:inline-grid;place-items:center;width:14px;height:14px;margin-left:6px;
+  border-radius:50%;background:#c2231a;color:#fff;flex:none;
+  font:700 10px/1 var(--f);vertical-align:1px;cursor:help;
+}
+
+.attrs{padding:13px 15px;display:flex;flex-direction:column;gap:9px;max-width:430px}
+.attr{display:grid;grid-template-columns:82px minmax(0,1fr) 34px;align-items:center;gap:10px}
+.attr__label{font:10px/1 var(--f);letter-spacing:.13em;text-transform:uppercase;
+  color:var(--ink-dim)}
+.attr__track{height:6px;border-radius:3px;background:rgba(255,255,255,.13);overflow:hidden}
+.attr__fill{
+  display:block;height:100%;width:var(--w);border-radius:3px;
+  background:linear-gradient(90deg,var(--red),#ff8b80);
+  box-shadow:0 0 12px rgba(232,54,42,.55);
+  transition:width .7s cubic-bezier(.22,.9,.25,1);
+}
+.attr[data-k="defence"] .attr__fill,
+.attr[data-k="accuracy"] .attr__fill{
+  background:linear-gradient(90deg,#39d67f,#8ff0bb);box-shadow:0 0 12px rgba(40,199,111,.45)}
+.attr__num{font:700 12px/1 var(--mono);text-align:right;color:var(--ink)}
+
+.skills{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px;
+  margin-top:11px;max-width:430px}
+.skill{
+  padding:10px 11px;border-radius:var(--r-sm);min-height:62px;
+  background:var(--glass);border:1px solid var(--edge-soft);
+  -webkit-backdrop-filter:blur(14px) saturate(150%);backdrop-filter:blur(14px) saturate(150%);
+  display:flex;flex-direction:column;gap:6px;
+}
+.skill__dot{width:7px;height:7px;border-radius:50%;background:var(--red);
+  box-shadow:0 0 9px rgba(232,54,42,.8);flex:none}
+.skill__name{font-size:11.5px;line-height:1.35;font-weight:600;color:var(--ink)}
+
+.deploy{display:flex;gap:9px;margin-top:16px;flex-wrap:wrap}
+.btn{
+  height:46px;padding:0 26px;border-radius:13px;cursor:pointer;border:1px solid transparent;
+  font:750 13px/1 var(--f);letter-spacing:.16em;transition:transform .16s,filter .16s,
+    background .16s,border-color .16s;
+}
+.btn:hover{transform:translateY(-2px)}
+.btn:active{transform:translateY(0)}
+.btn[disabled]{opacity:.42;cursor:not-allowed;transform:none}
+/* 13px/750 is not "large text", so white on these buttons needs the full 4.5:1.
+   The old #ff5347 top stop gave 3.19:1; deepening the gradient buys 4.8:1 at the
+   light end and 6.8:1 at the dark. The live state goes the other way — white on
+   a bright green measured 1.8:1, near-black on it measures 6.1:1. */
+.btn--deploy{
+  background:linear-gradient(180deg,#d8322a,#b0201a);color:#fff;
+  border-color:rgba(255,255,255,.25);
+  box-shadow:0 10px 26px -8px rgba(232,54,42,.85),0 1px 0 rgba(255,255,255,.4) inset;
+  min-width:172px;
+}
+.btn--deploy:hover{filter:brightness(1.08)}
+.btn--deploy.is-live{
+  background:linear-gradient(180deg,#33d982,#1fa85c);color:#04160c;
+  box-shadow:0 10px 26px -8px rgba(40,199,111,.8),0 1px 0 rgba(255,255,255,.4) inset;
+}
+.btn--ghost,.btn--kill{
+  background:var(--glass-2);border-color:var(--edge);color:var(--ink);
+  -webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);padding:0 18px;
+}
+.btn--ghost:hover{background:rgba(255,255,255,.19)}
+.btn--kill{color:#ffb3ac;border-color:rgba(232,54,42,.42)}
+.btn--kill:hover{background:rgba(232,54,42,.26)}
+.btn--kill.is-on{background:#c2231a;color:#fff;border-color:#fff}
+.deploy__state{margin-top:10px;font-size:12px;color:var(--ink-dim);max-width:52ch;
+  text-shadow:0 1px 8px rgba(0,0,0,.8);min-height:1.4em}
+/*
+  The engine's running commentary. Same ink as the sentence above it, but mono and
+  a size down so it reads as instrument output rather than prose. min-height holds
+  the row while the engine is idle and the string is empty, so turning automation
+  on doesn't shove the layout. It is the last element in the column, so a 1-to-2
+  line rewrap moves nothing below it — which is what makes a once-a-second update
+  acceptable here and not in #deployState.
+*/
+.deploy__why{margin-top:5px;font:11px/1.5 var(--mono);color:var(--ink-dim);
+  max-width:52ch;text-shadow:0 1px 8px rgba(0,0,0,.8);min-height:1.5em}
+
+/* ── data grids ─────────────────────────────────────────────────────────── */
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:8px 12px}
+.grid2 dt{font:9.5px/1 var(--f);letter-spacing:.14em;text-transform:uppercase;
+  color:var(--ink-faint);margin-bottom:3px}
+.grid2 dd{font:600 13.5px/1.15 var(--mono);letter-spacing:-.01em}
+.grid2--sm dd{font-size:12.5px}
+.stats{margin-top:11px;padding-top:11px;border-top:1px solid var(--edge-soft)}
+.up{color:var(--green)}
+.down{color:var(--red-ink)}
+.flat{color:var(--ink-dim)}
+
+/* equity sparkline */
+.spark{position:relative;margin-top:12px;height:64px}
+.spark svg{width:100%;height:100%;display:block;overflow:visible}
+.spark__label{position:absolute;right:2px;top:0;font:9.5px/1 var(--f);letter-spacing:.14em;
+  text-transform:uppercase;color:var(--ink-faint)}
+
+/* ── risk ───────────────────────────────────────────────────────────────── */
+.gauge{margin-bottom:11px}
+.gauge__row{display:flex;justify-content:space-between;align-items:baseline;gap:8px;
+  font:9.5px/1 var(--f);letter-spacing:.14em;text-transform:uppercase;color:var(--ink-faint)}
+.gauge__row b{font:700 15px/1 var(--mono);letter-spacing:-.01em;color:var(--ink)}
+.gauge__row--sm{margin-top:7px}
+.gauge__row--sm b{font-size:12px}
+.gauge__track{height:8px;border-radius:4px;background:rgba(255,255,255,.13);overflow:hidden;
+  margin-top:7px}
+.gauge__fill{display:block;height:100%;width:var(--w);border-radius:4px;background:var(--green);
+  transition:width .6s ease,background .4s ease}
+/* RiskManager.assess() emits safe | caution | danger | critical. These used to
+   select on "watch", which the backend has never produced, so the amber tier
+   was dead CSS and a cautioned account rendered as if it were safe. */
+.risk[data-level="caution"] .gauge__fill{background:var(--amber)}
+.risk[data-level="danger"] .gauge__fill{background:#ff8a3d}
+.risk[data-level="critical"] .gauge__fill{background:var(--red)}
+.risk[data-level="caution"] #riskLevel{background:rgba(246,201,69,.24);
+  border-color:rgba(246,201,69,.5);color:#ffe396}
+.risk[data-level="danger"] #riskLevel{background:rgba(255,138,61,.24);
+  border-color:rgba(255,138,61,.5);color:#ffc79c}
+.risk[data-level="critical"] #riskLevel{background:#c2231a;border-color:#fff;color:#fff}
+.risk[data-level="critical"]{border-color:rgba(232,54,42,.6);
+  box-shadow:var(--shadow),0 0 0 1px rgba(232,54,42,.34),0 0 34px -8px rgba(232,54,42,.6)}
+.reasons{margin-top:9px;display:flex;flex-direction:column;gap:5px}
+.reasons li{font-size:11.5px;line-height:1.45;color:var(--ink-dim);padding-left:11px;
+  position:relative}
+.reasons li::before{content:"";position:absolute;left:0;top:6px;width:4px;height:4px;
+  border-radius:50%;background:var(--ink-faint)}
+
+/* ── basket ─────────────────────────────────────────────────────────────── */
+.basket__pl{display:flex;justify-content:space-between;align-items:baseline;margin-top:11px;
+  font:9.5px/1 var(--f);letter-spacing:.14em;text-transform:uppercase;color:var(--ink-faint)}
+.basket__pl b{font:700 16px/1 var(--mono);letter-spacing:-.01em}
+.basket__bar{height:6px;border-radius:3px;background:rgba(255,255,255,.13);margin-top:7px;
+  overflow:hidden}
+/* the fill only ever measures progress toward the take-profit, so a losing
+   basket has an empty bar — the track carries the direction instead */
+.basket__bar.is-loss{background:rgba(232,54,42,.38)}
+.basket__bar i{display:block;height:100%;width:var(--w);border-radius:3px;background:var(--green);
+  transition:width .5s ease}
+.legs{margin-top:9px;display:flex;flex-direction:column;gap:4px;max-height:124px;
+  overflow-y:auto;scrollbar-width:thin}
+.legs::-webkit-scrollbar{width:5px}
+.legs::-webkit-scrollbar-thumb{background:rgba(255,255,255,.18);border-radius:3px}
+.leg{display:grid;grid-template-columns:26px 42px minmax(0,1fr) auto;gap:7px;align-items:center;
+  font:11px/1.3 var(--mono);padding:4px 6px;border-radius:8px;background:rgba(255,255,255,.05)}
+.leg__n{color:var(--ink-faint)}
+.leg__side{font-weight:700;letter-spacing:.04em}
+.leg__side.buy{color:var(--green)}
+.leg__side.sell{color:var(--red-ink)}
+.leg__px{color:var(--ink-dim);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.leg__pl{text-align:right;font-weight:700}
+.legs__empty{font-size:11.5px;color:var(--ink-faint);padding:5px 0}
+
+/* ── assistant dock ─────────────────────────────────────────────────────── */
+.dock{
+  position:fixed;top:calc(var(--bar-h) + 22px);right:10px;bottom:52px;width:var(--dock-w);
+  z-index:25;display:flex;flex-direction:column;padding:14px;
+}
+.dock__head{display:flex;align-items:center;gap:10px;padding-bottom:11px;
+  border-bottom:1px solid var(--edge-soft);flex:none}
+.dock__avatar{
+  width:30px;height:30px;border-radius:9px;flex:none;display:flex;align-items:center;
+  justify-content:center;gap:4px;background:rgba(255,255,255,.13);border:1px solid var(--edge);
+}
+.dock__avatar i{width:7px;height:7px;border-radius:50%;border:2px solid var(--red);
+  box-shadow:0 0 7px rgba(232,54,42,.85)}
+.dock__title{flex:1;font-size:13px;font-weight:650;letter-spacing:.06em}
+.dock__toggle{background:none;border:0;cursor:pointer;font:10.5px/1 var(--f);
+  letter-spacing:.14em;text-transform:uppercase;color:var(--ink-faint);padding:5px}
+.dock__toggle:hover{color:var(--ink)}
+.dock__body{display:flex;flex-direction:column;min-height:0;flex:1}
+.dock.is-collapsed{bottom:auto}
+.dock.is-collapsed .dock__body{display:none}
+.dock.is-collapsed .dock__head{padding-bottom:0;border-bottom:0}
+
+.dock__log{flex:1;overflow-y:auto;padding:12px 2px 4px;display:flex;flex-direction:column;
+  gap:9px;min-height:0;scrollbar-width:thin}
+.dock__log::-webkit-scrollbar{width:6px}
+.dock__log::-webkit-scrollbar-thumb{background:rgba(255,255,255,.18);border-radius:3px}
+.msg{max-width:94%;padding:9px 12px;border-radius:14px;font-size:13px;line-height:1.55;
+  animation:rise .28s ease}
+@keyframes rise{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+.msg--ai{background:rgba(255,255,255,.06);border:1px solid var(--edge-soft);
+  border-bottom-left-radius:5px;align-self:flex-start}
+.msg--me{background:rgba(232,54,42,.26);border:1px solid rgba(232,54,42,.44);
+  border-bottom-right-radius:5px;align-self:flex-end}
+.msg--brief{background:rgba(255,255,255,.06);border:1px solid var(--edge-soft);max-width:100%}
+.msg--brief .msg__hi{display:block;font-weight:650;margin-bottom:7px;font-size:13.5px}
+.msg--brief ul{display:flex;flex-direction:column;gap:5px}
+.msg--brief li{padding-left:12px;position:relative;color:var(--ink-dim);font-size:12.5px;
+  line-height:1.5}
+.msg--brief li::before{content:"";position:absolute;left:0;top:7px;width:4px;height:4px;
+  border-radius:50%;background:var(--red)}
+.msg__time{display:block;margin-top:5px;font:9.5px/1 var(--mono);color:var(--ink-faint)}
+
+.dock__chips{display:flex;flex-wrap:wrap;gap:6px;padding:9px 0;flex:none}
+.sug{
+  padding:7px 11px;border-radius:999px;cursor:pointer;background:rgba(255,255,255,.08);
+  border:1px solid var(--edge-soft);font-size:11.5px;color:var(--ink-dim);transition:.16s;
+}
+.sug:hover{background:rgba(255,255,255,.17);color:var(--ink);border-color:var(--edge)}
+.dock__form{display:flex;gap:8px;flex:none}
+.dock__input{
+  flex:1;min-width:0;height:42px;padding:0 14px;border-radius:12px;font:13px var(--f);
+  color:var(--ink);background:rgba(255,255,255,.05);border:1px solid var(--edge);
+}
+.dock__input::placeholder{color:var(--ink-faint)}
+.dock__input:focus{border-color:rgba(255,255,255,.42)}
+.btn--send{height:42px;padding:0 17px;letter-spacing:.1em;font-size:12px;
+  background:rgba(255,255,255,.13);border-color:var(--edge);color:var(--ink)}
+.btn--send:hover{background:rgba(255,255,255,.24)}
+
+/* ── ticker + notice ────────────────────────────────────────────────────── */
+.ticker{
+  position:fixed;left:10px;bottom:10px;right:calc(var(--dock-w) + 26px);height:34px;z-index:26;
+  display:flex;align-items:center;gap:9px;padding:0 13px;border-radius:999px;overflow:hidden;
+}
+.ticker__dot{width:6px;height:6px;border-radius:50%;background:var(--green);flex:none;
+  box-shadow:0 0 9px var(--green);animation:pulse 2s ease-in-out infinite}
+.ticker__text{font:11.5px/1 var(--mono);color:var(--ink-dim);white-space:nowrap;overflow:hidden;
+  text-overflow:ellipsis}
+.notice{
+  /* inset to the content area, never under the assistant rail */
+  position:fixed;left:10px;right:calc(var(--dock-w) + 26px);bottom:54px;z-index:40;
+  max-width:620px;margin-inline:auto;
+  padding:11px 17px;border-radius:13px;font-size:12.5px;line-height:1.5;text-align:center;
+  border-color:rgba(232,54,42,.5);
+  /* The red goes on background-IMAGE so it layers over var(--glass) instead of
+     replacing it. As a plain `background` it won the cascade over .glass and the
+     panel became a 20%-red wash of whatever was behind it — over the bright top
+     of the stage gradient that is a 240-grey, and the warning text vanished. */
+  background:var(--glass);
+  background-image:linear-gradient(rgba(232,54,42,.30),rgba(232,54,42,.30));
+}
+.notice[hidden]{display:none}
+
+/* ── link broker ────────────────────────────────────────────────────────────
+   The one panel someone reaches for when nothing works, so it must not depend
+   on anything working: no broker, no engine, no live snapshot. Its own glass,
+   its own backdrop, dark enough that the form reads over the bright top of the
+   stage gradient. */
+.linkbar{
+  display:flex;align-items:center;gap:11px;margin-top:16px;padding:10px 12px 10px 14px;
+  border-radius:var(--r-sm);border-color:rgba(246,201,69,.42);
+  /* amber layered over var(--glass), not instead of it — see .notice */
+  background:var(--glass);
+  background-image:linear-gradient(rgba(246,201,69,.16),rgba(246,201,69,.16));
+}
+.linkbar[hidden]{display:none}
+.linkbar__dot{
+  width:8px;height:8px;border-radius:50%;background:var(--amber);flex:none;
+  box-shadow:0 0 10px var(--amber);animation:pulse 2.2s ease-in-out infinite;
+}
+.linkbar__text{flex:1 1 auto;min-width:0;font-size:12.5px;color:#fff6dc;
+  text-shadow:0 1px 8px rgba(0,0,0,.75)}
+.btn--link{
+  height:38px;padding:0 16px;flex:none;font-size:11.5px;letter-spacing:.14em;
+  background:var(--amber);color:#241c02;border-color:rgba(255,255,255,.5);
+  box-shadow:0 8px 20px -8px rgba(246,201,69,.8),0 1px 0 rgba(255,255,255,.55) inset;
+}
+.btn--link:hover{filter:brightness(1.07)}
+
+.link{
+  width:min(620px,calc(100vw - 24px));max-height:min(88vh,760px);
+  padding:0;border:1px solid var(--edge);border-radius:var(--r);color:var(--ink);
+  /* opaque enough to read over the near-white top of the stage gradient; the
+     blur is decoration here, not the thing carrying the contrast */
+  background:rgba(18,20,26,.93);
+  box-shadow:0 40px 90px -24px rgba(0,0,0,.9),0 2px 12px rgba(0,0,0,.5);
+  overflow:hidden;
+}
+.link::before,.link::after{content:none}         /* no glass sheen over a form */
+.link::backdrop{background:rgba(6,8,12,.62);-webkit-backdrop-filter:blur(3px);
+  backdrop-filter:blur(3px)}
+/* showModal() missing -> the fallback sets [open] by hand and must still float */
+.link:not([open]){display:none}
+.link__form{display:flex;flex-direction:column;max-height:inherit;overflow:hidden}
+.link__head{
+  display:flex;align-items:flex-start;gap:12px;padding:18px 20px 12px;
+  border-bottom:1px solid var(--edge-soft);
+}
+.link__title{font:800 17px/1.2 var(--f);letter-spacing:.02em}
+.link__sub{margin-top:3px;font-size:12px;color:var(--ink-dim)}
+.link__x{
+  margin-left:auto;flex:none;width:32px;height:32px;border-radius:9px;cursor:pointer;
+  border:1px solid var(--edge);background:rgba(255,255,255,.09);
+  font:400 20px/1 var(--f);color:var(--ink);
+}
+.link__x:hover{background:rgba(255,255,255,.2)}
+.link__state{
+  margin:0;padding:10px 20px;font:11.5px/1.5 var(--mono);
+  border-bottom:1px solid var(--edge-soft);background:rgba(255,255,255,.045);
+  color:var(--ink-dim);
+}
+.link__state.is-live{color:#8ff0b6;background:rgba(40,199,111,.14)}
+.link__state.is-bad{color:#ffc0b9;background:rgba(232,54,42,.16)}
+.link__state.is-busy{color:#ffe8ad;background:rgba(246,201,69,.14)}
+.link__grid{
+  display:grid;grid-template-columns:1fr 1fr;gap:14px;padding:16px 20px;
+  overflow:auto;flex:1 1 auto;
+}
+.fld{display:flex;flex-direction:column;gap:6px;min-width:0}
+.fld--wide{grid-column:1 / -1}
+/* Advanced: which terminal to drive is not a credential, so it stays out of the
+   three-field flow until somebody needs it. <summary> brings its own disclosure
+   triangle and its own keyboard handling, and the global :focus-visible ring
+   already covers it. */
+.link__adv{grid-column:1 / -1;border:1px solid var(--edge);border-radius:12px;
+  background:rgba(255,255,255,.03)}
+.link__advsum{padding:10px 13px;cursor:pointer;font:600 12px/1.35 var(--f);
+  color:rgba(244,245,247,.78);border-radius:12px}
+.link__advsum:hover{color:var(--ink)}
+.link__adv[open] .link__advsum{border-bottom:1px solid var(--edge);border-radius:12px 12px 0 0}
+.link__advbody{display:grid;gap:14px;padding:13px}
+.fld[hidden]{display:none}
+.fld__label{font:700 11px/1 var(--f);letter-spacing:.13em;text-transform:uppercase;
+  color:rgba(244,245,247,.82)}
+.fld__in{
+  height:40px;padding:0 11px;width:100%;font:14px/1 var(--f);color:var(--ink);
+  background:rgba(255,255,255,.07);border:1px solid var(--edge);border-radius:10px;
+}
+select.fld__in{padding-right:6px}
+/* the native menu paints on the OS layer, so its own colours must be set */
+.fld__in option{background:#16181d;color:#f4f5f7}
+.fld__in::placeholder{color:rgba(244,245,247,.62)}
+/* No outline:none here. The global :focus-visible ring (2px --red-ink, 3px
+   offset) is the only thing marking focus, and it measures 5.4:1 against the
+   field and 5.8:1 against the panel; the 26%-alpha glow it replaced managed
+   1.3:1, which is not a focus indicator, it is a rumour. Solid --red was the
+   ring until it was measured at 2.8:1 over glass — under the 3:1 a non-text
+   indicator needs — so it moved to the light red. The border brighten is extra. */
+.fld__in:focus{border-color:rgba(255,255,255,.42)}
+.fld__in:disabled{opacity:.5;cursor:not-allowed}
+.fld__help{font-size:11.5px;line-height:1.45;color:rgba(244,245,247,.66)}
+.fld__help.is-warn{color:#ffe8ad}
+.fld__pw{display:flex;gap:8px}
+.fld__eye{
+  flex:none;height:40px;padding:0 12px;border-radius:10px;cursor:pointer;
+  border:1px solid var(--edge);background:rgba(255,255,255,.09);
+  font:700 11px/1 var(--f);letter-spacing:.1em;color:var(--ink);
+}
+.fld__eye:hover{background:rgba(255,255,255,.2)}
+.fld__eye[aria-pressed="true"]{background:rgba(255,255,255,.24);border-color:var(--spec)}
+.fld--real{gap:8px;padding:11px 13px;border:1px solid rgba(232,54,42,.4);border-radius:12px;
+  background:rgba(232,54,42,.10)}
+.chk{display:flex;align-items:center;gap:10px;cursor:pointer;font-size:13.5px}
+.chk input{position:absolute;opacity:0;width:20px;height:20px;margin:0;cursor:pointer}
+.chk__box{
+  flex:none;width:20px;height:20px;border-radius:6px;border:1.6px solid var(--edge);
+  background:rgba(255,255,255,.08);position:relative;
+}
+.chk input:checked + .chk__box{background:var(--red);border-color:#fff}
+.chk input:checked + .chk__box::after{
+  content:"";position:absolute;left:5.5px;top:2.5px;width:6px;height:11px;
+  border:solid #fff;border-width:0 2.2px 2.2px 0;transform:rotate(42deg);
+}
+.chk input:focus-visible + .chk__box{outline:2px solid var(--red-ink);outline-offset:3px}
+.chk__text b{color:#ffb3ac}
+.fld__warn{font-size:11.5px;line-height:1.5;color:#ffd7d2}
+.link__warns{padding:0 20px;display:grid;gap:7px}
+.link__warns:empty{display:none}
+.link__warns li{
+  padding:9px 12px;border-radius:10px;font-size:12px;line-height:1.5;
+  border:1px solid rgba(246,201,69,.42);background:rgba(246,201,69,.13);color:#fff3d4;
+}
+.link__foot{
+  display:flex;gap:9px;flex-wrap:wrap;padding:16px 20px 6px;
+  border-top:1px solid var(--edge-soft);
+}
+.link__foot .btn{height:44px}
+.link__foot .btn--deploy{min-width:0;flex:1 1 200px}
+.link__msg{padding:0 20px 16px;font-size:12.5px;line-height:1.5;color:var(--ink-dim);
+  min-height:1.4em}
+.link__msg.is-bad{color:#ffc0b9}
+.link__msg.is-good{color:#8ff0b6}
+@media (max-width:560px){
+  .link__grid{grid-template-columns:1fr}
+  .link__foot{flex-direction:column}
+  .link__foot .btn{width:100%}
+}
+
+/* ── responsive ─────────────────────────────────────────────────────────────
+   Three columns — roster left, figure centre, stats right — hold all the way
+   down to 1280x800. The assistant is a fixed right rail only when there is
+   genuinely room for it; below that it becomes a collapsed bottom-right panel
+   that overlays on demand instead of stealing 372px from the stats column. */
+@media (max-width:1499px){
+  :root{--dock-w:0px;--dock-float:360px}
+  .shell{grid-template-columns:272px minmax(0,1fr) 288px}
+  .dock{
+    top:auto;bottom:10px;right:10px;width:var(--dock-float);
+    max-height:min(58vh,430px);z-index:45;
+  }
+  .dock__log{max-height:230px}
+  /* stays pinned to the bottom edge when collapsed — the base rule releases
+     `bottom` because it anchors from the top, which is not the case here */
+  .dock.is-collapsed{bottom:10px}
+  .ticker{right:calc(var(--dock-float) + 20px)}
+  /* both bottom-strip elements stop short of the overlay panel */
+  .notice{right:calc(var(--dock-float) + 20px);bottom:54px}
+}
+@media (max-width:1180px){
+  /* not enough width for a third column: the stats become a band underneath */
+  .shell{grid-template-columns:264px minmax(0,1fr)}
+  .col--right{
+    grid-column:1 / -1;display:grid;gap:var(--gap);align-content:start;
+    grid-template-columns:repeat(auto-fit,minmax(236px,1fr));
+  }
+  .col--right .panel{margin-bottom:0}
+}
+@media (max-width:980px){
+  /* --dock-float must stay a length: it feeds calc() above, and an invalid
+     substitution would make `right` compute to auto and break the centring */
+  :root{--dock-w:0px;--dock-float:0px}
+  .bar{flex-wrap:wrap;height:auto;padding:9px 12px;gap:8px;position:sticky;top:0;left:0;right:0;
+    margin:0 0 10px;border-radius:0 0 var(--r) var(--r)}
+  .bar__tag{display:none}
+  .shell{
+    grid-template-columns:minmax(0,1fr);padding:12px 10px 96px;gap:12px;min-height:auto;
+  }
+  .col--centre{order:-1;min-height:auto}
+  .col--right{grid-column:auto;grid-template-columns:minmax(0,1fr)}
+  .stage__figure{width:min(96vw,540px);height:min(58vh,600px);opacity:.5}
+  .centre__blurb{max-width:none}
+  .attrs,.skills{max-width:none}
+  .roster{max-height:none}
+  .dock{position:static;width:auto;margin:0 10px 12px;bottom:auto;top:auto;right:auto;
+    max-height:none}
+  .dock__log{max-height:300px;flex:none}
+  .dock.is-collapsed{bottom:auto}
+  .ticker{right:10px;bottom:10px}
+  .notice{right:10px;bottom:56px}
+  .btn--deploy{flex:1;min-width:140px}
+}
+@media (max-width:520px){
+  .skills{grid-template-columns:1fr}
+  .grid2{grid-template-columns:1fr 1fr}
+  .deploy{flex-direction:column}
+  .btn{width:100%}
+  .mark__text{font-size:13px}
+}
+
+/* ── motion / print ─────────────────────────────────────────────────────── */
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation-duration:.001s!important;animation-iteration-count:1!important;
+    transition-duration:.001s!important}
+}

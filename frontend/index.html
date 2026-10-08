@@ -1,0 +1,517 @@
+<!doctype html>
+<html lang="en" data-hero="procedural">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="dark light">
+<title>INFINITY.100 AI — AI Trading Operating System</title>
+<link rel="stylesheet" href="css/app.css">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='8' fill='%2316181d'/><circle cx='11' cy='15' r='4' fill='none' stroke='%23e8362a' stroke-width='2.4'/><circle cx='21' cy='15' r='4' fill='none' stroke='%23e8362a' stroke-width='2.4'/></svg>">
+</head>
+<body>
+
+<!-- ══ backdrop: hero.png if it loads, else the procedural robot ══════════ -->
+<div class="stage" aria-hidden="true">
+  <div class="stage__gradient"></div>
+  <div class="stage__photo"></div>
+  <div class="stage__figure">
+    <!-- Procedural hero: angular white helmet, red ring eyes, black hooded mantle -->
+    <svg class="hero" viewBox="0 0 520 760" preserveAspectRatio="xMidYMax meet" role="presentation">
+      <defs>
+        <linearGradient id="hood" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0"   stop-color="#2b2f38"/>
+          <stop offset=".45" stop-color="#171a20"/>
+          <stop offset="1"   stop-color="#0b0d11"/>
+        </linearGradient>
+        <linearGradient id="shell" x1=".15" y1="0" x2=".9" y2="1">
+          <stop offset="0"   stop-color="#ffffff"/>
+          <stop offset=".52" stop-color="#e9ecf1"/>
+          <stop offset="1"   stop-color="#b9bfca"/>
+        </linearGradient>
+        <linearGradient id="shellDark" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0" stop-color="#cfd4dc"/>
+          <stop offset="1" stop-color="#8d94a1"/>
+        </linearGradient>
+        <linearGradient id="visor" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0"   stop-color="#20242c"/>
+          <stop offset="1"   stop-color="#0d0f13"/>
+        </linearGradient>
+        <radialGradient id="eyeGlow" cx=".5" cy=".5" r=".5">
+          <stop offset="0"   stop-color="#ff6a5e" stop-opacity=".95"/>
+          <stop offset=".55" stop-color="#e8362a" stop-opacity=".55"/>
+          <stop offset="1"   stop-color="#e8362a" stop-opacity="0"/>
+        </radialGradient>
+        <filter id="soft" x="-30%" y="-30%" width="160%" height="160%">
+          <feGaussianBlur stdDeviation="9"/>
+        </filter>
+        <filter id="eyeBlur" x="-80%" y="-80%" width="260%" height="260%">
+          <feGaussianBlur stdDeviation="5"/>
+        </filter>
+      </defs>
+
+      <!-- floor contact shadow -->
+      <ellipse cx="260" cy="742" rx="196" ry="26" fill="#0a0c10" opacity=".5" filter="url(#soft)"/>
+
+      <!-- mantle / shoulders -->
+      <path d="M260 250 C 150 262 96 330 74 430 C 56 512 46 610 40 742 L 480 742 C 474 610 464 512 446 430 C 424 330 370 262 260 250 Z" fill="url(#hood)"/>
+      <path d="M260 250 C 196 258 154 292 128 348 L 168 372 C 192 322 222 296 260 288 Z" fill="#31363f" opacity=".55"/>
+      <path d="M260 250 C 324 258 366 292 392 348 L 352 372 C 328 322 298 296 260 288 Z" fill="#31363f" opacity=".35"/>
+
+      <!-- chest plate -->
+      <path d="M204 392 L316 392 L332 470 L300 520 L220 520 L188 470 Z" fill="url(#shellDark)" opacity=".92"/>
+      <path d="M204 392 L316 392 L320 410 L200 410 Z" fill="#fff" opacity=".5"/>
+      <circle cx="260" cy="452" r="15" fill="none" stroke="#e8362a" stroke-width="4" opacity=".9"/>
+      <circle cx="260" cy="452" r="5" fill="#e8362a"/>
+
+      <!-- hood opening behind the helmet -->
+      <path d="M260 74 C 168 74 122 148 122 236 C 122 300 154 330 180 344 L 340 344 C 366 330 398 300 398 236 C 398 148 352 74 260 74 Z" fill="#0c0e12"/>
+
+      <!-- helmet: angular faceted shell -->
+      <path d="M260 96 C 190 96 152 152 152 224 C 152 274 172 306 196 322 L 324 322 C 348 306 368 274 368 224 C 368 152 330 96 260 96 Z" fill="url(#shell)"/>
+      <path d="M260 96 C 224 96 196 112 178 140 L 214 168 C 226 146 240 136 260 134 Z" fill="#fff" opacity=".85"/>
+      <path d="M152 224 C 152 274 172 306 196 322 L 226 322 C 198 300 182 268 182 226 Z" fill="#aab1bd" opacity=".55"/>
+      <path d="M368 224 C 368 274 348 306 324 322 L 294 322 C 322 300 338 268 338 226 Z" fill="#9aa2ae" opacity=".7"/>
+      <!-- crown seam + specular -->
+      <path d="M260 100 L 260 150" stroke="#ffffff" stroke-width="3" opacity=".8"/>
+      <path d="M186 128 C 210 106 234 100 260 100 C 286 100 310 106 334 128" fill="none" stroke="#ffffff" stroke-width="5" opacity=".65"/>
+
+      <!-- visor band -->
+      <path d="M172 196 L348 196 L338 258 L182 258 Z" fill="url(#visor)"/>
+      <path d="M172 196 L348 196 L346 204 L174 204 Z" fill="#4a505c" opacity=".8"/>
+
+      <!-- red ring eyes -->
+      <g>
+        <circle cx="214" cy="227" r="30" fill="url(#eyeGlow)" filter="url(#eyeBlur)"/>
+        <circle cx="306" cy="227" r="30" fill="url(#eyeGlow)" filter="url(#eyeBlur)"/>
+        <circle class="hero__eye" cx="214" cy="227" r="16" fill="none" stroke="#e8362a" stroke-width="5"/>
+        <circle class="hero__eye" cx="306" cy="227" r="16" fill="none" stroke="#e8362a" stroke-width="5"/>
+        <circle cx="214" cy="227" r="4.5" fill="#ff8f85"/>
+        <circle cx="306" cy="227" r="4.5" fill="#ff8f85"/>
+      </g>
+
+      <!-- jaw / breather -->
+      <path d="M206 276 L314 276 L302 312 L218 312 Z" fill="#dfe3e9"/>
+      <path d="M222 288 H298 M226 298 H294" stroke="#8f97a4" stroke-width="4" stroke-linecap="round"/>
+    </svg>
+  </div>
+  <div class="stage__vignette"></div>
+</div>
+
+<!-- ══ top bar ═══════════════════════════════════════════════════════════ -->
+<header class="bar glass">
+  <div class="bar__left">
+    <div class="mark">
+      <span class="mark__eyes" aria-hidden="true"><i></i><i></i></span>
+      <span class="mark__text">INFINITY<b>.100</b> AI</span>
+    </div>
+    <span class="bar__tag">AI TRADING OPERATING SYSTEM</span>
+  </div>
+
+  <div class="bar__right">
+    <!-- live equity pill (was: coin pill 2523) -->
+    <div class="pill pill--equity" title="Live account equity">
+      <svg class="pill__coin" viewBox="0 0 24 24" aria-hidden="true">
+        <circle cx="12" cy="12" r="9" fill="#f6c945" stroke="#c99a1e" stroke-width="1.6"/>
+        <circle cx="12" cy="12" r="5.4" fill="none" stroke="#a97f16" stroke-width="1.4"/>
+      </svg>
+      <span class="pill__value" id="equityPill">—</span>
+      <span class="pill__delta" id="equityDelta"></span>
+    </div>
+
+    <!--
+      The broker link, spelled out. The wifi pill beside it opens the same panel
+      and always did — but a glyph labelled "offline" does not read as "click here
+      to connect your broker", so the entry point existed and could not be found.
+      This one says what it does, lives in the bar (fixed at wide widths, sticky
+      at narrow ones, so it is on screen at every scroll position) and is never
+      hidden: once linked it becomes the way back in to change accounts.
+    -->
+    <button class="pill pill--link pill--broker needs-link" id="brokerBtn" type="button"
+            aria-haspopup="dialog"
+            title="MetaTrader 5 is not linked. Click to enter your broker login.">
+      <svg class="plug" viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M9 2.6v5.2M15 2.6v5.2"/>
+        <path d="M6.4 7.8h11.2v3.5a5.6 5.6 0 0 1-11.2 0z"/>
+        <path d="M12 16.9v4.5"/>
+      </svg>
+      <span class="pill__value" id="brokerBtnText">LINK BROKER</span>
+    </button>
+
+    <!-- wifi glyph -> MT5 connection state; also the way into Link Broker -->
+    <button class="pill pill--link" id="connBtn" type="button" aria-haspopup="dialog"
+            title="MetaTrader 5 connection — open the broker link panel">
+      <svg class="wifi" id="wifi" viewBox="0 0 24 20" aria-hidden="true">
+        <path class="wifi__a3" d="M2.6 6.4a15 15 0 0 1 18.8 0"/>
+        <path class="wifi__a2" d="M6 10.3a10 10 0 0 1 12 0"/>
+        <path class="wifi__a1" d="M9.3 14.2a5 5 0 0 1 5.4 0"/>
+        <circle class="wifi__dot" cx="12" cy="17.4" r="1.7"/>
+      </svg>
+      <span class="sr-only">MetaTrader 5 link:</span>
+      <span class="pill__value" id="connText">offline</span>
+    </button>
+
+    <div class="pill pill--mode" id="modePill" title="Account type">
+      <span id="modeText">—</span>
+    </div>
+  </div>
+</header>
+
+<main class="shell">
+
+  <!-- ══ LEFT: Your AI Traders ══════════════════════════════════════════ -->
+  <section class="col col--left" aria-labelledby="rosterTitle">
+    <div class="panel glass">
+      <div class="panel__head">
+        <div>
+          <h1 class="panel__title" id="rosterTitle">Your AI Traders</h1>
+          <p class="panel__sub" id="rosterSub">STRATEGY CLASSES <b>S</b> — <b>A</b></p>
+        </div>
+        <span class="chip chip--count" id="rosterCount">0</span>
+      </div>
+
+      <ul class="roster" id="roster" aria-live="polite"></ul>
+
+      <button class="add" id="addStrategy" type="button"
+              aria-expanded="false" aria-controls="addNote">
+        <span class="add__icon" aria-hidden="true">+</span> ADD STRATEGY
+      </button>
+      <p class="add__note" id="addNote" hidden></p>
+    </div>
+  </section>
+
+  <!-- ══ CENTRE: the selected trader over the hero ══════════════════════ -->
+  <section class="col col--centre" aria-labelledby="selTitle">
+    <!--
+      The header and the blurb sit on the bright part of the stage, so they share
+      a scrim (.centre__hero::before) that is exactly as tall as they are. That is
+      why they are wrapped: the blurb runs to a different number of lines for each
+      strategy and wraps again on a narrow viewport, and a fixed-height scrim
+      would stop covering the last line. Everything below here is .glass and
+      carries its own contrast.
+    -->
+    <div class="centre__hero">
+      <div class="centre__top">
+        <div class="klass glass" id="klassBadge"><span id="klassLetter">S</span></div>
+        <div class="centre__id">
+          <h2 class="centre__name" id="selTitle">—</h2>
+          <p class="centre__meta"><span id="selTag">—</span></p>
+        </div>
+        <div class="level glass">
+          <span class="level__num" id="selLevel">0</span>
+          <span class="level__word">LEVEL</span>
+        </div>
+      </div>
+
+      <p class="centre__blurb" id="selBlurb"></p>
+    </div>
+
+    <!--
+      Shown whenever there is no broker link: the way in, not a dead end. It sits
+      directly under the strategy header on purpose. It used to be the last thing
+      in this column, below the attribute bars and the skill tiles, which put it
+      off the bottom of a narrow window — a prompt nobody scrolls to is not a
+      prompt. First thing under the title, it is the first thing read.
+    -->
+    <div class="linkbar glass" id="linkBar" hidden>
+      <span class="linkbar__dot" aria-hidden="true"></span>
+      <span class="linkbar__text" id="linkBarText">MetaTrader 5 is not linked.</span>
+      <button class="btn btn--link" id="linkBtn" type="button">LINK BROKER</button>
+    </div>
+
+    <!--
+      Expectancy. A fixed target-and-stop bracket has exactly one break-even win
+      rate, and it can be computed from the settings before a single trade — so
+      this panel can tell the truth about a configuration on day one instead of
+      after the account is down. Once enough baskets have closed it switches to
+      the reward/risk the broker actually delivered, spread and swap included.
+      Hidden entirely when there is nothing honest to say (see renderExpectancy).
+    -->
+    <div class="expc glass" id="expc" hidden>
+      <div class="expc__head">
+        <span class="expc__dot" id="expcDot" aria-hidden="true"></span>
+        <span class="expc__verdict" id="expcVerdict">—</span>
+        <span class="expc__from" id="expcFrom"></span>
+      </div>
+      <div class="expc__nums" id="expcNums">
+        <span class="expc__num"><b id="expcNeed">—</b><small>needs to win</small></span>
+        <span class="expc__num"><b id="expcGot">—</b><small>winning now</small></span>
+        <span class="expc__num"><b id="expcRR">—</b><small>reward / risk</small></span>
+      </div>
+      <p class="expc__note" id="expcNote"></p>
+    </div>
+
+    <div class="centre__spacer"></div>
+
+    <!-- attribute bars: Aggression / Risk control / Accuracy / Execution -->
+    <div class="attrs glass" id="attrs">
+      <div class="attr" data-k="attack">
+        <span class="attr__label">Aggression</span>
+        <span class="attr__track"><i class="attr__fill" style="--w:0%"></i></span>
+        <span class="attr__num">0</span>
+      </div>
+      <div class="attr" data-k="defence">
+        <span class="attr__label">Risk control</span>
+        <span class="attr__track"><i class="attr__fill" style="--w:0%"></i></span>
+        <span class="attr__num">0</span>
+      </div>
+      <div class="attr" data-k="accuracy">
+        <span class="attr__label">Accuracy</span>
+        <span class="attr__track"><i class="attr__fill" style="--w:0%"></i></span>
+        <span class="attr__num">0</span>
+      </div>
+      <div class="attr" data-k="dexterity">
+        <span class="attr__label">Execution</span>
+        <span class="attr__track"><i class="attr__fill" style="--w:0%"></i></span>
+        <span class="attr__num">0</span>
+      </div>
+    </div>
+
+    <!-- 3 skill tiles -> active modules -->
+    <div class="skills" id="skills"></div>
+
+    <!-- START -> DEPLOY -->
+    <div class="deploy">
+      <button class="btn btn--deploy" id="deployBtn" type="button">DEPLOY</button>
+      <button class="btn btn--ghost" id="flattenBtn" type="button" title="Close every position now">FLATTEN</button>
+      <button class="btn btn--kill" id="killBtn" type="button" title="Stop and block all trading">KILL</button>
+    </div>
+    <!--
+      Two nodes, not one. #deployState is a polite live region and must only
+      change when the STATE changes, or a screen reader re-reads the whole
+      sentence every poll. The engine's running commentary carries numbers that
+      move every second, so it lives in #deployWhy, outside the live region and
+      hidden from the accessibility tree — visible, never announced.
+    -->
+    <p class="deploy__state" id="deployState" role="status" aria-live="polite">Idle.</p>
+    <p class="deploy__why" id="deployWhy" aria-hidden="true"></p>
+  </section>
+
+  <!-- ══ RIGHT: live account, risk, basket, assistant ═══════════════════ -->
+  <section class="col col--right">
+
+    <!-- account -->
+    <div class="panel glass panel--tight">
+      <div class="panel__head panel__head--sm">
+        <h2 class="panel__title panel__title--sm">Account</h2>
+        <span class="chip" id="symbolChip">—</span>
+      </div>
+      <dl class="grid2">
+        <div><dt>Equity</dt><dd id="acEquity">—</dd></div>
+        <div><dt>Balance</dt><dd id="acBalance">—</dd></div>
+        <div><dt>Floating</dt><dd id="acFloat">—</dd></div>
+        <div><dt>Free margin</dt><dd id="acFree">—</dd></div>
+        <div><dt>Bid</dt><dd id="acBid">—</dd></div>
+        <div><dt>Ask</dt><dd id="acAsk">—</dd></div>
+        <div><dt>Spread</dt><dd id="acSpread">—</dd></div>
+        <div><dt>Leverage</dt><dd id="acLev">—</dd></div>
+      </dl>
+      <div class="spark">
+        <svg id="curve" viewBox="0 0 300 64" preserveAspectRatio="none" role="img"
+             aria-label="Equity curve">
+          <path id="curveArea" d="" fill="url(#curveFill)" opacity=".35"/>
+          <path id="curveLine" d="" fill="none" stroke="#28c76f" stroke-width="2"
+                stroke-linejoin="round" stroke-linecap="round"/>
+          <defs>
+            <linearGradient id="curveFill" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0" stop-color="#28c76f" stop-opacity=".7"/>
+              <stop offset="1" stop-color="#28c76f" stop-opacity="0"/>
+            </linearGradient>
+          </defs>
+        </svg>
+        <span class="spark__label" id="curveLabel">equity</span>
+      </div>
+    </div>
+
+    <!-- risk: always visible -->
+    <div class="panel glass panel--tight risk" id="riskPanel" data-level="safe">
+      <div class="panel__head panel__head--sm">
+        <h2 class="panel__title panel__title--sm">Risk</h2>
+        <span class="chip chip--level" id="riskLevel">SAFE</span>
+      </div>
+      <div class="gauge">
+        <div class="gauge__row">
+          <span>Margin level</span><b id="riskMargin">—</b>
+        </div>
+        <div class="gauge__track"><i class="gauge__fill" id="riskFill" style="--w:0%"></i></div>
+        <div class="gauge__row gauge__row--sm">
+          <span>Clear of stop-out</span><b id="riskClear">—</b>
+        </div>
+      </div>
+      <dl class="grid2 grid2--sm">
+        <div><dt>Drawdown</dt><dd id="riskDd">—</dd></div>
+        <div><dt>Today</dt><dd id="riskDay">—</dd></div>
+      </dl>
+      <ul class="reasons" id="riskReasons"></ul>
+    </div>
+
+    <!-- basket -->
+    <div class="panel glass panel--tight">
+      <div class="panel__head panel__head--sm">
+        <h2 class="panel__title panel__title--sm">Basket</h2>
+        <span class="chip" id="basketSide">flat</span>
+      </div>
+      <dl class="grid2 grid2--sm">
+        <div><dt>Layers</dt><dd id="bkLayers">0</dd></div>
+        <div><dt>Lots</dt><dd id="bkLots">0.00</dd></div>
+        <div><dt>Average</dt><dd id="bkAvg">—</dd></div>
+        <div><dt>Target</dt><dd id="bkTarget">—</dd></div>
+      </dl>
+      <div class="basket__pl">
+        <span>Floating</span><b id="bkProfit">—</b>
+      </div>
+      <div class="basket__bar"><i id="bkBar" style="--w:0%"></i></div>
+      <ul class="legs" id="legs"></ul>
+      <dl class="grid2 grid2--sm stats">
+        <div><dt>Baskets</dt><dd id="stClosed">0</dd></div>
+        <div><dt>Win rate</dt><dd id="stWin">—</dd></div>
+        <div><dt>Net P/L</dt><dd id="stNet">—</dd></div>
+        <div><dt>Peak equity</dt><dd id="stPeak">—</dd></div>
+      </dl>
+    </div>
+  </section>
+</main>
+
+<!-- ══ assistant dock ════════════════════════════════════════════════════ -->
+<section class="dock glass" aria-labelledby="aiTitle">
+  <div class="dock__head">
+    <span class="dock__avatar" aria-hidden="true"><i></i><i></i></span>
+    <h2 class="dock__title" id="aiTitle">INFINITY.100 AI</h2>
+    <button class="dock__toggle" id="dockToggle" type="button"
+            aria-expanded="true" aria-controls="dockBody">Hide</button>
+  </div>
+
+  <div class="dock__body" id="dockBody">
+    <div class="dock__log" id="aiLog" role="log" aria-live="polite" aria-atomic="false"></div>
+    <div class="dock__chips" id="aiChips"></div>
+    <form class="dock__form" id="aiForm" autocomplete="off">
+      <label class="sr-only" for="aiInput">Message INFINITY.100 AI</label>
+      <input class="dock__input" id="aiInput" type="text" maxlength="2000"
+             placeholder="Ask about the market, your risk, or say “deploy”…">
+      <button class="btn btn--send" id="aiSend" type="submit">Send</button>
+    </form>
+  </div>
+</section>
+
+<!-- ══ activity ticker ═══════════════════════════════════════════════════ -->
+<aside class="ticker glass" aria-label="Activity">
+  <span class="ticker__dot" aria-hidden="true"></span>
+  <span class="ticker__text" id="tickerText">Waiting for the engine…</span>
+</aside>
+
+<div class="notice glass" id="notice" role="alert" hidden></div>
+
+<!-- ══ link broker ═══════════════════════════════════════════════════════
+     A native <dialog>: focus trap, Esc to close and an inert background come
+     free, which is most of the accessibility this needs. Everything typed here
+     goes to POST /api/broker/link and nowhere else; the password field is
+     write-only — the server answers with "a password is set", never with the
+     password.
+────────────────────────────────────────────────────────────────────────── -->
+<dialog class="link glass" id="linkDlg" aria-labelledby="linkTitle">
+  <form class="link__form" id="linkForm" method="dialog" autocomplete="off">
+    <div class="link__head">
+      <div>
+        <h2 class="link__title" id="linkTitle">Link your broker</h2>
+        <p class="link__sub">Account number, trade server and password — the same three
+          things MetaTrader 5 itself asks for. Any broker whose account allows automated
+          trading will work. They stay on this computer.</p>
+      </div>
+      <button class="link__x" id="linkClose" type="button" aria-label="Close">×</button>
+    </div>
+
+    <p class="link__state" id="linkState" role="status" aria-live="polite">Checking…</p>
+
+    <div class="link__grid">
+      <label class="fld">
+        <span class="fld__label">Account number</span>
+        <input class="fld__in" id="lkLogin" type="text" inputmode="numeric"
+               autocomplete="off" spellcheck="false" placeholder="e.g. 5031234"
+               aria-describedby="lkLoginHelp">
+        <span class="fld__help" id="lkLoginHelp">Leave empty to use whichever account is
+          already logged in inside MetaTrader 5.</span>
+      </label>
+
+      <label class="fld">
+        <span class="fld__label">Trade server</span>
+        <input class="fld__in" id="lkServer" type="text" list="lkServers"
+               autocomplete="off" spellcheck="false" placeholder="e.g. Deriv-Demo"
+               aria-describedby="lkServerHelp">
+        <datalist id="lkServers"></datalist>
+        <span class="fld__help" id="lkServerHelp">Exactly as your broker spells it. Any
+          broker is accepted.</span>
+      </label>
+
+      <div class="fld fld--wide">
+        <label class="fld__label" for="lkPassword">Password</label>
+        <div class="fld__pw">
+          <!-- autocomplete off on purpose: a broker password should not end up
+               in a browser profile that syncs to somebody's cloud account -->
+          <input class="fld__in" id="lkPassword" type="password" autocomplete="off"
+                 spellcheck="false" placeholder="Your MT5 password"
+                 aria-describedby="lkPasswordHelp">
+          <button class="fld__eye" id="lkReveal" type="button"
+                  aria-pressed="false" aria-label="Show password">Show</button>
+        </div>
+        <span class="fld__help" id="lkPasswordHelp">Stored in config.json on this machine.</span>
+      </div>
+
+      <!-- Which terminal to drive is not a credential, so it does not belong in
+           the three fields above. It is not removed either: this machine has
+           several MetaTrader installations, and when the wrong one is open the
+           failure ("MetaTrader 5 is not running") points at the wrong thing.
+           Collapsed, so it is there when it is needed and invisible when it is
+           not. -->
+      <details class="link__adv" id="lkAdvanced">
+        <summary class="link__advsum">Advanced — which MetaTrader 5 program to drive</summary>
+        <div class="link__advbody">
+          <label class="fld fld--wide">
+            <span class="fld__label" id="lkTerminalLabel">MetaTrader 5 program</span>
+            <select class="fld__in" id="lkTerminal" aria-describedby="lkTerminalHelp">
+              <option value="">Loading…</option>
+            </select>
+            <span class="fld__help" id="lkTerminalHelp">Leave on the default unless you have
+              more than one MetaTrader 5 installed.</span>
+          </label>
+
+          <label class="fld fld--wide" id="lkPathRow" hidden>
+            <span class="fld__label">Path to terminal64.exe</span>
+            <input class="fld__in" id="lkPath" type="text" spellcheck="false"
+                   placeholder="C:\Program Files\MetaTrader 5\terminal64.exe">
+          </label>
+        </div>
+      </details>
+
+      <div class="fld fld--wide fld--real">
+        <label class="chk">
+          <input type="checkbox" id="lkReal">
+          <span class="chk__box" aria-hidden="true"></span>
+          <span class="chk__text">Allow trading on a <b>REAL money</b> account</span>
+        </label>
+        <p class="fld__warn" id="lkRealWarn">
+          Off by default. A real account will still connect and be shown — it just
+          will not be traded. Turn this on only when you mean to risk real money.
+        </p>
+      </div>
+    </div>
+
+    <ul class="link__warns" id="linkWarns"></ul>
+
+    <div class="link__foot">
+      <button class="btn btn--deploy" id="lkSave" type="submit">SAVE &amp; CONNECT</button>
+      <button class="btn btn--ghost" id="lkSaveOnly" type="button">Save only</button>
+      <button class="btn btn--ghost" id="lkDisconnect" type="button" hidden>Disconnect</button>
+    </div>
+    <p class="link__msg" id="linkMsg" role="status" aria-live="polite"></p>
+  </form>
+</dialog>
+
+<noscript>
+  <div class="notice glass" style="display:block">
+    INFINITY.100 AI needs JavaScript for the live feed. The API is still available at
+    <code>/api/status</code>.
+  </div>
+</noscript>
+
+<script src="js/app.js"></script>
+</body>
+</html>

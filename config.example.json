@@ -1,0 +1,183 @@
+{
+  "account": {
+    "login": 0,
+    "password": "",
+    "server": "",
+    "terminal_path": "C:\\Program Files\\MetaTrader 5\\terminal64.exe",
+    "connect_timeout_ms": 10000,
+    "allow_live_real": false
+  },
+  "symbol": {
+    "name": "auto",
+    "candidates": [
+      "XAUUSDm",
+      "XAUUSD",
+      "GOLD",
+      "GOLD.",
+      "XAUUSD.a",
+      "XAUUSDc",
+      "XAUUSD.raw",
+      "GOLDmicro"
+    ]
+  },
+  "engine": {
+    "enabled": false,
+    "active_strategy": "recovery_grid",
+    "poll_ms": 1000,
+    "magic": 100100
+  },
+  "risk": {
+    "min_margin_level_pct": 300.0,
+    "max_drawdown_pct": 30.0,
+    "daily_loss_limit_pct": 20.0,
+    "equity_floor": 0.0,
+    "max_basket_layers": 12,
+    "max_total_lots": 0.0,
+    "kill_switch": false
+  },
+  "strategies": {
+    "recovery_grid": {
+      "base_lot": 0.01,
+      "lot_tiers": [
+        [
+          0,
+          0.01
+        ],
+        [
+          100,
+          0.02
+        ],
+        [
+          200,
+          0.05
+        ],
+        [
+          500,
+          0.1
+        ],
+        [
+          1400,
+          0.5
+        ],
+        [
+          20000,
+          2.0
+        ],
+        [
+          150000,
+          3.0
+        ],
+        [
+          200000,
+          4.0
+        ]
+      ],
+      "grid_step_usd": 0.35,
+      "max_layers": 9,
+      "layer_multiplier": 1.0,
+      "basket_tp_usd": 0.0,
+      "basket_tp_pct_equity": 1.5,
+      "basket_sl_pct_equity": 0.0,
+      "volume_split_max_lot": 2.0,
+      "max_spread_usd": 0.6,
+      "cooldown_s": 20,
+      "direction_mode": "momentum",
+      "momentum_tf": "M5",
+      "momentum_period": 20
+    },
+    "ai_scalper": {
+      "base_lot": 0.01,
+      "lot_tiers": [
+        [
+          0,
+          0.01
+        ],
+        [
+          500,
+          0.05
+        ],
+        [
+          5000,
+          0.2
+        ]
+      ],
+      "tp_usd": 1.8,
+      "sl_usd": 3.6,
+      "max_spread_usd": 0.3,
+      "cooldown_s": 45,
+      "ema_fast": 8,
+      "ema_slow": 21,
+      "timeframe": "M1",
+      "max_positions": 5,
+      "min_spacing_usd": 0.0,
+      "min_sep_atr": 0.3,
+      "volume_split_max_lot": 0.01,
+      "sl_atr_mult": 1.6,
+      "tp_atr_mult": 4.0,
+      "broker_net_mult": 1.5,
+      "breakeven_at_frac": 0.6,
+      "breakeven_lock_usd": 0.1,
+      "min_adx": 15.0,
+      "entry_margin_band": 1.25,
+      "bracket_rev": 2
+    },
+    "trend_ai": {
+      "base_lot": 0.01,
+      "lot_tiers": [
+        [
+          0,
+          0.01
+        ],
+        [
+          500,
+          0.05
+        ],
+        [
+          5000,
+          0.2
+        ]
+      ],
+      "tp_pct_equity": 2.5,
+      "sl_pct_equity": 1.2,
+      "max_spread_usd": 0.45,
+      "cooldown_s": 300,
+      "ema_fast": 21,
+      "ema_slow": 55,
+      "adx_min": 20.0,
+      "timeframe": "M15"
+    },
+    "mean_reversion": {
+      "base_lot": 0.01,
+      "lot_tiers": [
+        [
+          0,
+          0.01
+        ],
+        [
+          500,
+          0.05
+        ],
+        [
+          5000,
+          0.2
+        ]
+      ],
+      "tp_pct_equity": 1.0,
+      "sl_pct_equity": 1.5,
+      "bb_period": 20,
+      "bb_dev": 2.0,
+      "max_spread_usd": 0.4,
+      "cooldown_s": 120,
+      "timeframe": "M5"
+    }
+  },
+  "user": {
+    "name": "Theophilus",
+    "risk_profile": "Moderate",
+    "sessions": [
+      "London",
+      "New York"
+    ],
+    "favourite_symbol": "Gold"
+  }
+}

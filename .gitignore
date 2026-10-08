@@ -1,0 +1,45 @@
+# ── secrets: never commit ──────────────────────────────────────────────────
+# config.json holds the MT5 account number and, unless INFINITY_MT5_PASSWORD is
+# set in the environment, the password in plaintext. config.example.json is the
+# committed template; the real one stays on the machine that trades.
+config.json
+config.json.*
+*.bak
+*.pre-fix-bak
+
+# ── runtime state: regenerated, account-specific, and it churns ────────────
+# infinity.db is the trading record and logs/engine.log carries the account
+# number. Both grow on every run, so they would make every clone heavier and
+# every diff noisier while telling a new checkout nothing it needs.
+data/
+logs/
+
+# ── python ─────────────────────────────────────────────────────────────────
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+env/
+
+# ── working artifacts from building this app ────────────────────────────────
+# Frame grabs from the reference recordings and API snapshots taken while
+# reverse-engineering the strategies. 14 MB of them, and none of it is the app.
+.frames/
+.vid/
+.snap-*.json
+.status-snapshot.json
+.live-status.json
+.test_engine.txt
+.check-*.js
+.diag.txt
+.t[0-9].txt
+preview-snapshot.html
+
+# ── editor / OS ────────────────────────────────────────────────────────────
+.vscode/
+.idea/
+*.swp
+Thumbs.db
+desktop.ini
+.DS_Store
